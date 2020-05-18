@@ -1,73 +1,77 @@
 import React, {useEffect, useState} from 'react';
 import {Api} from "../Providers/api";
-import TableRowComponent from "./tableRowComponent";
-import Pagination from "react-js-pagination";
+import DataTable from 'react-data-table-component';
 const api = new Api();
-require("bootstrap/less/bootstrap.less");
-const LandingPageComponent = () => {
-    const [pageCount, changePageCount]  = useState(0);
+let page = 0;
+const LandingPageComponent = (props) => {
+    const columns = [
+        {
+            name: 'Title',
+            selector: 'title',
+            sortable: true,
+        },
+        {
+            name: 'URL',
+            selector: 'url',
+            sortable: true,
+        },
+        {
+            name: 'Created At',
+            selector: 'created_at',
+            sortable: true,
+        },
+        {
+            name: 'Author',
+            selector: 'author',
+            sortable: true,
+        },
+    ];
     const [postArr, setPostArr]  = useState([]);
-    const [apiData, setApiData] = useState({});
+
     useEffect(() => {
         getPost();
-        setInterval(getPost, 10000);
+        setInterval(() => {
+            page = page + 1
+            getPost();
+        }, 10000);
     }, []);
 
+    /**
+     * function to get the data from the api
+     */
     const getPost = () => {
-        const url = 'https://hn.algolia.com/api/v1/search_by_date?tags=story&page=' + pageCount;
+        const url = 'https://hn.algolia.com/api/v1/search_by_date?tags=story&page=' + page;
         api.getApi(url).then(res => {
-            console.log(res);
-            setApiData(res);
             res.hits.map(item => (
-                // setPostArr([...postArr  , item])
                 setPostArr(prevNotes => {
                     return [...prevNotes, item];
                 })
             ))
-            changePageCount((pageCount) => {
-                return pageCount + 1
-            });
-            console.log(pageCount);
         }).catch(err => {
-            console.error(err);
+            window.alert('Something went wrong please try later');
         });
     }
     return (
-        <div>
-            <table border={1}>
-                <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Url</th>
-                    <th>Created At</th>
-                    <th>Author</th>
-                </tr>
-                </thead>
-                <tbody>
-                { postArr.map((item, index) => (
-                    <TableRowComponent key={index} data={{
-                        url: item.url,
-                        title: item.title,
-                        created_at: item.created_at,
-                        author: item.author
-                    }}/>
-                ))
-                }
-                </tbody>
-            </table>
-            <Pagination
-                activePage={pageCount}
-                itemsCountPerPage={apiData.hitsPerPage}
-                totalItemsCount={apiData.nbPages}
-                pageRangeDisplayed={5}
-                onChange={() => {
-                    changePageCount((pageCount) => {
-                        return pageCount + 1
+        <React.Fragment>
+            <DataTable
+                pagination={true}
+                columns={columns}
+                striped={true}
+                pointerOnHover={true}
+                data={postArr}
+                paginationPerPage={20}
+                fixedHeader={true}
+                fixedHeaderScrollHeight="60vh"
+                onRowClicked={(ev) => {
+                    console.log(ev);
+                    props.history.push({
+                        pathname: '/postDetail',
+                        search: '?query=' + ev.author,
+                        state: { data: ev }
                     });
-                    console.log(pageCount);
                 }}
             />
-        </div>
+        </React.Fragment>
     )
 }
 export default LandingPageComponent;

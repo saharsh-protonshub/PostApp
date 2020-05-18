@@ -1,13 +1,17 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter as Router, Switch, Route} from "react-router-dom";
+import PostDetailPage from "./Components/PostDetailPage";
 import LandingPageComponent from "./Components/LandingPage";
 
 function App() {
   return (
-    <div className="App">
-      <LandingPageComponent />
-    </div>
+      <Router>
+          <Switch>
+              <Route exact path="/" component={LandingPageComponent} />
+              <Route exact path="/postDetail" component={PostDetailPage} />
+          </Switch>
+      </Router>
   );
 }
 
